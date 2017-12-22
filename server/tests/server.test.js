@@ -14,7 +14,9 @@ const todos = [{
   text: 'Second todo'
 }, {
   _id: new ObjectID(),
-  text: 'Third todo'
+  text: 'Third todo',
+  completed: true,
+  completedAt: 333
 }];
 
 app.use(bodyParser.json());
@@ -47,21 +49,38 @@ describe('POST /todos', () => {
     });
   });
 
-  it('should not create todo with invalid data', (done) => {
+  it('should not create todo with invalid body data', (done) => {
     request(app)
-    .post('/todos')
-    .send({})
-    .expect(400)
-    .end((err, res) => {
-      if(err) {
-        return done(err);
-      }
-      Todo.find().then((todos) => {
-        expect(todos.length).toBe(3);
-        done();
-      }).catch((e) => done(e));
-    });
+      .post('/todos')
+      .send({})
+      .expect(400)
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        Todo.find().then((todos) => {
+          expect(todos.length).toBe(2);
+          done();
+        }).catch((e) => done(e));
+      });
   });
+
+  // it('should not create todo with invalid data', (done) => {
+  //   request(app)
+  //   .post('/todos')
+  //   .send({})
+  //   .expect(400)
+  //   .end((err, res) => {
+  //     if(err) {
+  //       return done(err);
+  //     }
+  //     Todo.find().then((todos) => {
+  //       expect(todos.length).toBe(3);
+  //       done();
+  //     }).catch((e) => done(e));
+  //   });
+  // });
 
 });
 
@@ -144,30 +163,43 @@ describe('DELETE /todos/:id', () => {
 });
 
 
-// describe('DELETE /todos/:id', () => {
-//   // it('should delete todo with id', (done) => {
-//   //   var hexId = todos[1]._id.toHexString();
-//   //   request(app)
-//   //   .delete(`/todos/${hexId}`)
-//   //   .expect(200)
-//   //   .expect((res) => {
-//   //     expect(res.body.todo._id).toBe(hexId);
-//   //   })
-//   //   .end((err, res) => {
-//   //     if (err){
-//   //       return done(err);
-//   //     }
-//   //     Todo.findById(hexId).then((todo) => {
-//   //       expect(todo.body).toNotExist();
-//   //       done();
-//   //     }).catch((e) => done(e));
-//   //   });
-//   // });
-//   // it('should return 404 if todo not found', (done) => {
-//   //
-//   // });
-//   //
-//   // it('should return 404 if id is invalid', (done) => {
-//   //
-//   // });
-// });
+describe('UPDATE /todos/:id', () => {
+  it('should update the todo', (done) => {
+    var hexId = todos[0]._id.toHexString();
+    var text = 'This should be the new text';
+
+    request(app)
+    .patch(`/todos/${hexId}`)
+    .send({
+      completed: true,
+      text
+    })
+    .expect(200)
+    .expect((res) => {
+      expect(res.body.todo.text).toBe(text);
+      expect(res.body.todo.completed).toBe(true);
+      //expect(res.body.todo.completedAt).toBeA('number');
+    })
+    .end(done)
+  });
+
+  it('should clear completedAt when todo is not completed', (done) => {
+
+      var hexId = todos[1]._id.toHexString();
+      var text = 'This should be the new text';
+
+      request(app)
+      .patch(`/todos/${hexId}`)
+      .send({
+        completed: false,
+        text
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe(text);
+        expect(res.body.todo.completed).toBe(false);
+        expect(res.body.todo.completedAt).toBe(null);
+      })
+      .end(done)
+  });
+});
