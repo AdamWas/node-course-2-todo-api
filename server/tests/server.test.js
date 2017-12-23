@@ -5,29 +5,16 @@ var bodyParser = require('body-parser');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
+const {todos, populateTodos, users, populateUsers} = require('./seed/seed')
 
-const todos = [{
-  _id: new ObjectID(),
-  text: 'First todo'
-}, {
-  _id: new ObjectID(),
-  text: 'Second todo'
-}, {
-  _id: new ObjectID(),
-  text: 'Third todo',
-  completed: true,
-  completedAt: 333
-}];
 
 app.use(bodyParser.json());
 
-beforeEach((done) => {
-  Todo.remove({}).then(() => {
-    return Todo.insertMany(todos);
-  }).then(() => done());
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
+
   it('should create a new todo', (done) => {
     var text = 'Test todo text';
     request(app)
@@ -49,38 +36,21 @@ describe('POST /todos', () => {
     });
   });
 
-  it('should not create todo with invalid body data', (done) => {
+  it('should not create todo with invalid data', (done) => {
     request(app)
-      .post('/todos')
-      .send({})
-      .expect(400)
-      .end((err, res) => {
-        if (err) {
-          return done(err);
-        }
-
-        Todo.find().then((todos) => {
-          expect(todos.length).toBe(2);
-          done();
-        }).catch((e) => done(e));
-      });
+    .post('/todos')
+    .send({})
+    .expect(400)
+    .end((err, res) => {
+      if(err) {
+        return done(err);
+      }
+      Todo.find().then((todos) => {
+        expect(todos.length).toBe(3);
+        done();
+      }).catch((e) => done(e));
+    });
   });
-
-  // it('should not create todo with invalid data', (done) => {
-  //   request(app)
-  //   .post('/todos')
-  //   .send({})
-  //   .expect(400)
-  //   .end((err, res) => {
-  //     if(err) {
-  //       return done(err);
-  //     }
-  //     Todo.find().then((todos) => {
-  //       expect(todos.length).toBe(3);
-  //       done();
-  //     }).catch((e) => done(e));
-  //   });
-  // });
 
 });
 
