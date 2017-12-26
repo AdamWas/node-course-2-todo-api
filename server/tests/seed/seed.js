@@ -1,3 +1,5 @@
+const env = require('./../../config/config');
+
 const {ObjectID} = require('mongodb');
 const jwt = require('jsonwebtoken');
 
@@ -7,13 +9,18 @@ const {User} = require('./../../models/user');
 const userOneId = new ObjectID();
 const userTwoId = new ObjectID();
 
+if (!process.env.JWT_SECRET){
+  process.env.JWT_SECRET = "sgsadgsadgseewtegsdgb2425"
+};
+
 const users = [{
   _id: userOneId,
   email: 'adam@test.pl',
   password: 'userOnePassword',
   tokens: [{
     access: 'auth',
-    token: jwt.sign({_id: userOneId, access: 'auth'}, 'abc123').toString()
+    token: jwt.sign({_id: userOneId, access: 'auth'}, process.env.JWT_SECRET)
+    .toString()
   }]
 }, {
   _id: userTwoId,
@@ -21,7 +28,8 @@ const users = [{
   password: 'userTwoPassword',
   tokens: [{
     access: 'auth',
-    token: jwt.sign({_id: userTwoId, access: 'auth'}, 'abc123').toString()
+    token: jwt.sign({_id: userTwoId, access: 'auth'}, process.env.JWT_SECRET)
+    .toString()
   }]
 }]
 
